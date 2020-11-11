@@ -1,0 +1,26 @@
+# Endpoints:
+Done:
+get_product
+
+TODO:
+login
+set_product_price_tracker
+delete_product_price_tracker
+get_favorite_products
+favorite_product
+unfavorite_product
+get_fee_schedules
+get_movers
+get_movers_most_traded
+get_movers_best
+get_movers_worst
+get_product_candlesticks
+get_product_price_stats
+get_products
+search_products
+get_tags
+get_trade_configuration
+get_portfolio
+get_trades
+open_trade
+
