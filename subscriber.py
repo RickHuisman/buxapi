@@ -3,6 +3,7 @@ import websockets
 from event import SubscriberEvent, Event
 
 
+# https://stackoverflow.com/questions/1092531/event-system-in-python
 class BUXSubscriber:
     def __init__(self, access_token: str):
         self.url = 'wss://rtf.getbux.com/subscriptions/me'

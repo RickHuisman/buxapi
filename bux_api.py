@@ -355,6 +355,40 @@ class BUXApi:
     def trade_configuration(self, product_id: str) -> dict:
         return self.query(f"users/me/tradeconfigurations/{product_id}")
 
+    def search_user(self, query: str) -> list:
+        """
+        Search for user.
+
+        Parameters
+        ----------
+        query : str
+            The search query
+
+        Returns
+        -------
+        list
+            A list of users
+        """
+        return self.query_with_data("search/people/", {"q": query})
+
+    def user(self, user_id: str) -> dict:
+        """
+        Get user by id.
+
+        Parameters
+        ----------
+        user_id : str
+            The id of the user
+
+        Returns
+        -------
+        dict
+            A dict containing user info
+        """
+
+        return self.query(f"/users/{user_id}/profile")
+
+
     def portfolios(self) -> list:
         """
         Get portfolios.
@@ -449,7 +483,8 @@ class BUXApi:
 #res = api.product_candlestick('sb34799', '1d')
 #res = api.product_price_stats('sb34799')
 #res = api.performance()
-#print(res)
+#print(api.search_user('test'))
+#print(api.user('f6a9c371-a792-4247-af7b-2a625baf0c96'))
 #print(api.performance())
 #print(api.balance())
 #api.subscribe(['portfolio.performance'], f)

@@ -62,6 +62,21 @@ class BUXApiTest(unittest.TestCase):
 
         self.assertTrue(expect in res)
 
+    def test_search_user(self):
+        expect = self.mockup_user()
+
+        res = self.api.search_user(expect["nickname"])
+        found_ids = [user["id"] for user in res]
+
+        self.assertTrue(expect["id"] in found_ids)
+
+    def test_user(self):
+        expect = self.mockup_user()
+
+        res = self.api.user(expect["id"])
+
+        self.assertTrue(res["id"] == expect["id"])
+
     def test_movers(self):
         res = self.api.movers()
 
@@ -111,6 +126,7 @@ class BUXApiTest(unittest.TestCase):
         res = self.api.favorites()
 
         symbols = [e["symbol"] for e in res]
+        print(symbols)
         self.assertFalse(expect["symbol"] in symbols)
 
     def test_favorites(self):
@@ -120,6 +136,7 @@ class BUXApiTest(unittest.TestCase):
         res = self.api.favorites()
 
         symbols = [e["symbol"] for e in res]
+        print(symbols)
         self.assertTrue(expect["symbol"] in symbols)
 
     # def test_trades(self):
@@ -148,6 +165,11 @@ class BUXApiTest(unittest.TestCase):
             "name": "US stocks",
         }
 
+    def mockup_user(self) -> dict:
+        return {
+            "id": "f6a9c371-a792-4247-af7b-2a625baf0c96",
+            "nickname": "test",
+        }
 
 if __name__ == "__main__":
     unittest.main()
