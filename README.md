@@ -9,7 +9,7 @@ delete_product_price_tracker
 get_favorite_products
 favorite_product
 unfavorite_product
-get_fee_schedules
+get_fee_schedules ? Not supported anymore ???
 get_movers
 get_movers_most_traded
 get_movers_best
@@ -24,3 +24,5 @@ get_portfolio
 get_trades
 open_trade
 
+upcoming earnins
+news article

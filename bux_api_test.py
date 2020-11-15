@@ -7,7 +7,7 @@ class BUXApiTest(unittest.TestCase):
     def setUpClass(cls):
         cls.api = BUXApi()
 
-    def test_get_product(self):
+    def test_product(self):
         expect = self.mockup_product()
 
         res = self.api.product(expect["securityId"])
@@ -15,7 +15,23 @@ class BUXApiTest(unittest.TestCase):
         self.assertTrue(res["symbol"] == expect["symbol"])
         self.assertTrue(res["securityId"] == expect["securityId"])
 
-    def test_get_products(self):
+    def test_portfolios(self):
+        res = self.api.portfolios()
+
+        self.assertTrue(isinstance(res, list))
+        self.assertTrue(res[0]["totalProfitAndLoss"])
+
+    def test_performance(self):
+        res = self.api.balance()
+
+        self.assertTrue(res["totalProfitAndLoss"])
+
+    def test_balance(self):
+        res = self.api.balance()
+
+        self.assertTrue(res["cashBalance"])
+
+    def test_products(self):
         expect = self.mockup_product()
 
         res = self.api.products()
@@ -36,7 +52,7 @@ class BUXApiTest(unittest.TestCase):
 
         self.assertTrue(res[0]["symbol"] == expect["symbol"])
 
-    def test_get_tags(self):
+    def test_tags(self):
         expect = self.mockup_tag()
 
         res = self.api.tags()
@@ -109,8 +125,8 @@ class BUXApiTest(unittest.TestCase):
     # def test_trades(self):
     #     res = self.api.trades()
 
-        # TODO Open trade and check
-        # print(res)
+    # TODO Open trade and check
+    # print(res)
 
     # def test_open_trade(self):
     #     expect = self.mockup_product()

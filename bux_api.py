@@ -3,6 +3,15 @@ import configparser
 import requests
 import json
 from bux_api_config import BUXApiConfig
+from subscriber import BUXSubscriber, SubscriberEvent
+
+
+class BUXTrade:
+    def __init__(self, product_id: str, amount: int, multiplier: int):
+        self.product_id = product_id
+        self.amount = amount
+        self.multiplier = multiplier
+        self.direction = "BUY"
 
 
 class BUXAccount:
@@ -24,15 +33,17 @@ class BUXApi:
         """
         Get account login infomation.
 
+        TODO
+
         Returns
         -------
         BUXAccount
             Account login information
         """
 
-        if os.getenv('TRAVIS', None):
-            email = os.getenv('BUX_EMAIL')
-            password = os.environ.get('BUX_PASSWORD')
+        if os.getenv("TRAVIS", None):
+            email = os.getenv("BUX_EMAIL")
+            password = os.environ.get("BUX_PASSWORD")
 
             return BUXAccount(email, password)
         else:
@@ -114,6 +125,38 @@ class BUXApi:
         request = requests.post(url, json=data, headers=headers)
         return request.json()
 
+    def news(self) -> dict:
+        """
+        Get news articles.
+
+        Returns
+        -------
+        dict
+            A dict of news articles
+        """
+
+        return self.query("users/me/news")
+
+    def feed(self) -> dict:
+        """
+        TODO
+
+        Returns
+        -------
+        """
+
+        return self.query("users/me/socialfeed")
+
+    def fees(self) -> dict:
+        """
+        TODO
+
+        Returns
+        -------
+        """
+
+        return self.query("users/me/feeschedule")
+
     def favorites(self) -> list:
         """
         Get all products that are marked as favorite.
@@ -121,7 +164,7 @@ class BUXApi:
         Returns
         -------
         list
-            Favorite products
+            A list of favorite products
         """
 
         return self.query("products/favorites")
@@ -132,7 +175,7 @@ class BUXApi:
 
         Parameters
         ----------
-        symbol_id:
+        symbol_id: str
             The id of the product
         """
 
@@ -214,14 +257,48 @@ class BUXApi:
 
         return self.query(f"products/{product_id}")
 
-    def product_candlesticks(self, product_id: str, type: str) -> list:
+    def product_candlestick(self, product_id: str, timespan: str) -> list:
+        """
+        Get price history of product.
+
+        Parameters
+        ----------
+        product_id : str
+            The id of the product
+        timespan : str
+            TODO
+            Possible timespans: ['1d', '5d', '1M', '3M', '6M', '1Y']
+
+        Returns
+        -------
+        dict
+            TODO
+        """
+
         return self.stats_query_with_data(
-            f"products/{product_id}/candlestick", {"type": type}
+            f"products/{product_id}/candlestick", {"type": timespan}
         )
 
-    def product_price_stats(self, product_id: str, type: str):
+    def product_price(self, product_id: str, timespan: str) -> dict:
+        """
+        Get price history of product.
+
+        Parameters
+        ----------
+        product_id : str
+            The id of the product
+        timespan : str
+            TODO
+            Possible timespans: ['1d', '5d', '1M', '3M', '6M', '1Y']
+
+        Returns
+        -------
+        dict
+            TODO
+        """
+
         return self.stats_query_with_data(
-            f"products/{product_id}/price", {"type": type}
+            f"products/{product_id}/price", {"type": timespan}
         )
 
     def products(self) -> dict:
@@ -278,12 +355,41 @@ class BUXApi:
     def trade_configuration(self, product_id: str) -> dict:
         return self.query(f"users/me/tradeconfigurations/{product_id}")
 
-    def portfolio(self) -> dict:
-        """Get portfolio of logged in user.
-        :TODO
+    def portfolios(self) -> list:
+        """
+        Get portfolios.
+
+        Returns
+        -------
+        list
+            A list of portofolios
         """
 
-        return self.query("/users/me/portfolio")
+        return self.query("/users/me/portfolios")
+
+    def performance(self) -> dict:
+        """
+        Get performance of portfolio.
+
+        Returns
+        -------
+        dict
+            A dict with perfomance info about portfolio
+        """
+
+        return self.query("/users/me/portfolio/performance")
+
+    def balance(self) -> dict:
+        """
+        Get cash balance.
+
+        Returns
+        -------
+        dict
+            A dict with balance info about portfolio
+        """
+
+        return self.query("/users/me/portfolio/cashBalance")
 
     def trades(self) -> list:
         """
@@ -297,23 +403,57 @@ class BUXApi:
 
         return self.query("/users/me/trades")
 
-    # TODO Strong typing
-    def open_trade(self, symbol_id: str, amount, leverage):
-        """"""
+    def trade(self, trade: BUXTrade) -> str:
+        """
+        Open a trade.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        """
 
         data = {
-            "productId": product_id,
-            "investingAmount": {"currency": "BUX", "decimals": "2", "amount": amount},
-            "leverage": 1,
-            "direction": "BUY",
+            "productId": trade.product_id,
+            "investingAmount": {
+                "currency": "BUX",
+                "decimals": "2",
+                "amount": trade.amount,
+            },
+            "leverage": trade.multiplier,
+            "direction": trade.direction,
         }
         return self.post(data)
+
+    def close(self):
+        pass
 
     def fee_schedules(self):
         pass
 
+    def subscribe(self, events, callback):
+        # TODO Blocking
+        # TODO Strong typing
+        subscriber = BUXSubscriber(self.access_token)
+        subscriber.subscribe(callback)
+        subscriber.start()
 
-# buxApi = BUXApi(account)
+
+#def f(x: SubscriberEvent):
+    #print(x)
+
+
+#api = BUXApi()
+#res = api.product_candlestick('sb34799', '1d')
+#res = api.product_price_stats('sb34799')
+#res = api.performance()
+#print(res)
+#print(api.performance())
+#print(api.balance())
+#api.subscribe(['portfolio.performance'], f)
+
 # # print(type(buxApi.get_product('sb34799')))
 # print(type(buxApi.get_product_candlesticks('sb34799', '1m')))
 # print(buxApi.search_products('NL_STOCKS', 'ASML'))
