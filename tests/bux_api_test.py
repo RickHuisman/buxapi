@@ -152,6 +152,9 @@ class BUXApiTest(unittest.TestCase):
 
     #     print(self.trades)
 
+    # def test_close(self):
+    # pass
+
     def mockup_product(self) -> dict:
         return {
             "symbol": "Adobe Systems",
@@ -170,6 +173,7 @@ class BUXApiTest(unittest.TestCase):
             "id": "f6a9c371-a792-4247-af7b-2a625baf0c96",
             "nickname": "test",
         }
+
 
 if __name__ == "__main__":
     unittest.main()

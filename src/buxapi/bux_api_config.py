@@ -1,7 +1,3 @@
-from dataclasses import dataclass
-
-
-@dataclass
 class BUXApiConfig:
     """Configuration for the BUX api.
 
@@ -23,7 +19,8 @@ class BUXApiConfig:
         "Authorization": "Basic " + auth_token,
     }
 
-    def get_bearer_headers(self, access_token: str) -> dict:
+    @staticmethod
+    def get_bearer_headers(access_token: str) -> dict:
         """Get the headers necessary for making requests to the bux api.
         :param  access_token TODO
         :returns dictionary containing request headers
