@@ -52,7 +52,9 @@ class BUXApi:
         headers = BUXApiConfig.get_bearer_headers(self.access_token)
 
         url = BUXApiConfig.base_endpoint_url + query
-        requests.delete(url, headers=headers)
+        request = requests.delete(url, headers=headers)
+        print(request)
+        print(request.json())
 
     def post(self, query: str, data: dict) -> str:
         headers = BUXApiConfig.get_bearer_headers(self.access_token)
@@ -281,6 +283,29 @@ class BUXApi:
 
         return self.delete(f"users/me/products/{product_id}/tracker")
 
+    def position_alert(self, position_id: str):
+        """
+        TODO
+        """
+
+        data = {
+
+        }
+
+        trackerTypeMode = "upperLimit" # ???
+
+        self.put_with_data(
+            f"users/me/portfolio/positions/{position_id}/{trackerTypeMode}",
+            data
+        )
+
+    def delete_position_alert(self, position_id: str):
+        """
+        TODO
+        """
+
+        pass
+
     def product_candlestick(self, product_id: str, timespan: str) -> list:
         """
         Get price history of product.
@@ -357,12 +382,6 @@ class BUXApi:
         return self.query_with_data(
             "products/search", {"tagId": tag_id, "q": search_term}
         )
-
-    def product_price_tracker(self):
-        pass
-
-    def delete_product_price_tracker(self):
-        pass
 
     def tags(self) -> list:
         """
@@ -508,10 +527,23 @@ class BUXApi:
 
         self.post("/users/me/portfolio/limit-orders", order.to_dict())
 
+    def get_autoclose_limit_order(self, order_id: str):
+        """
+        Get current and allowed autoclose configuration for a limit order.
+
+        Parameters
+        ----------
+        order_id : int
+            The id of the order
+        """
+
+        return self.query(
+            f"/users/me/portfolio/limit-orders/{order_id}/automaticExecutionTracker"
+        )
+
     def autoclose_limit_order(
-        self, order_id: int, lower_limit: float, upper_limit: float
+        self, order_id: str, lower_limit: float, upper_limit: float
     ):
-        # TODO improve doc and add example
         """
         Automatically close position when it reaches a certain limit.
         Limits are percentages so lower_limit = -0.1 == -10%
@@ -533,21 +565,82 @@ class BUXApi:
             data,
         )
 
-    def autoclose_market_order(
-        self, order_id: int, lower_limit: float, upper_limit: float
+    def get_autoclose_position(
+        self, position_id: str
     ):
-        pass
-        # data = {
-        # "lowerLimitPrice": lower_limit,
-        # "upperLimitPrice": lower_limit,
-        # "upperLimit": upper_limit
-        # "upperLimit": upper_limit
-        # }
+        """
+        Get current and allowed autoclose configuration for a position.
 
-        # self.put_with_data(
-        # f"/users/me/portfolio/positions/{order_id}/automaticExecutionTracker",
-        # data
-        # )
+        Parameters
+        ----------
+        position_id : str
+            The id of the position
+        """
+
+        return self.query(
+            f"/users/me/portfolio/positions/{position_id}/automaticExecutionTracker",
+        )
+
+    def autoclose_position(
+        self, position_id: str, upper_limit: float, lower_limit: float
+    ):
+        # TODO not working...
+        """
+        TODO
+            #"lowerLimitPrice": lower_limit,
+            #"upperLimitPrice": lower_limit,
+            # "upperLimit": 5,
+            # "lowerLimit": 25,
+
+            #"lowerLimit": 25.000,
+            #"upperLimit": 0.029,
+
+        e.g.:
+        "upperLimit": 0.8,
+        "lowerLimit": -0.10,
+        """
+
+        data = {
+            "upperLimit": upper_limit,
+            "lowerLimit": lower_limit,
+        }
+
+        self.put_with_data(
+            f"/users/me/portfolio/positions/{position_id}/automaticExecutionTracker",
+            data
+        )
+
+    def delete_autoclose_limit_order(
+        self, order_id: str
+    ):
+        """
+        Delete autoclose from order.
+
+        Parameters
+        ----------
+        order_id : int
+            The id of the order
+        """
+
+        self.delete(
+            f"/users/me/portfolio/limit-orders/{order_id}/automaticExecutionTracker",
+        )
+
+    def delete_autoclose_position(
+        self, position_id: str
+    ):
+        """
+        Delete autoclose from position.
+
+        Parameters
+        ----------
+        position_id : int
+            The id of the position
+        """
+
+        self.delete(
+            f"/users/me/portfolio/positions/{position_id}/automaticExecutionTracker"
+        )
 
     def close(self, position_id: str):
         """
@@ -563,7 +656,7 @@ class BUXApi:
 
     def limit_order(self, order_id: str) -> dict:
         """
-        Get limit order detail.
+        Get limit order information.
 
         Parameters
         ----------
@@ -573,10 +666,28 @@ class BUXApi:
         Returns
         -------
         dict
-            The dict containing info about order
+            A dict containing information about the order
         """
 
         return self.query(f"/users/me/portfolio/limit-orders/{order_id}")
+
+    def position(self, position_id: str) -> dict:
+        """
+        Get position information.
+
+        Parameters
+        ----------
+        position_id : str
+            The id of the position
+
+        Returns
+        -------
+        dict
+            A dict containing information about the position
+        """
+
+        return self.query(f"/users/me/portfolio/positions/{position_id}")
+
 
     def subscribe(self, events, callback):
         # TODO Blocking
@@ -611,54 +722,72 @@ class BUXApi:
             f"/users/me/portfolio/positions/{position_id}/note", note
         )
 
+    def set_multiplier(self, position_id: str, multiplier: str):
+        """
+        Set multiplier on position.
+
+        Parameters
+        ----------
+        position_id : str
+            The id of the position
+        mutliplier : str
+            The new multiplier for the position
+        """
+
+        data = { "newMultiplier": multiplier }
+
+        self.put_with_data(
+            f"users/me/portfolio/positions/{position_id}/leverage",
+            data
+        )
+
+
+    def flexible_multiplier_configurations(self, position_id: str):
+        """
+        TODO
+
+        Returns:
+        [{'investedAmount': {'currency': 'BUX', 'decimals': 2, 'amount': '50.00'},
+        'leverage': 1, 'notionalValue': {'currency': 'BUX', 'decimals': 2, 'amount': '50.00'},
+        'availableCashForTrading': {'currency': 'BUX', 'decimals': 2, 'amount': '1081.20'}, 'allowed': True}]
+        """
+
+        return self.query(
+            f"users/me/portfolio/positions/{position_id}/flexiblemultiplierconfigurations",
+        )
 
 """
 TODO
 
-savePositionNotes
-fetchPositionNotes
-
 cancelLimitOrderDeferred
 checkWithdrawalAmount
+
 collapse
 expand
-deleteLimitOrderAutomaticExecution
-setMultiplier
+mov
 setPositionTracker ???
-fetchLimitOrderAutomaticExecutionTracker
-fetchPosition
 fetchPositionTracker
-fetchFlexibleMultiplierConfigurations
-move
-
-GET https://api.getbux.com/core/25/users/me/portfolio/limit-orders/fdb7bcbf-2c80-4c9c-a689-63c755021400/automaticExecutionTracker
-https://api.getbux.com/core/25/users/me/portfolio/positions/b71b412e-e860-437e-a3be-6ce58d3bf891/automaticExecutionTracker
+fetchFlexibleMultiplierConfigurations ???
 """
 
 # def f(x: SubscriberEvent):
 # print(x)
 
 api = BUXApi()
-print(api.products())
-#api.autoclose_market_order("b71b412e-e860-437e-a3be-6ce58d3bf891", -0.1, 0.5)
-# api.autoclose_market_order("04c46d11-95db-42c7-9105-a48e82e2c19e", 0.1, -0.5)
-# print(api.portfolios())
+#print(api.position("04c46d11-95db-42c7-9105-a48e82e2c19e"))
+api.position_alert("04c46d11-95db-42c7-9105-a48e82e2c19e")
+#print(api.flexible_multiplier_configurations("04c46d11-95db-42c7-9105-a48e82e2c19e"))
+#print(api.get_autoclose_limit_order("fdb7bcbf-2c80-4c9c-a689-63c755021400"))
+#print(api.get_autoclose_market_order("04c46d11-95db-42c7-9105-a48e82e2c19e"))
 
-# print(api.get_limit_order("fdb7bcbf-2c80-4c9c-a689-63c755021400"))
+#print(api.portfolios()[0])
+#for p in api.portfolios()[0]["positions"]:
+     #print(p)
+     #print("")
 
-# o = LimitOrder("sb26504", 10, 2, SellTrade(), 0.9)
-# o = MarketOrder("sb26504", 10, 2, SellOrder())
-# api.market_order(o)
-# print(api.portfolios())
-# print(api.position_note("04c46d11-95db-42c7-9105-a48e82e2c19e"))
-# api.save_position_note("04c46d11-95db-42c7-9105-a48e82e2c19e", "This is a test!")
-# api.trade_configuration("sb34799"))
-# res = api.product_price_stats('sb34799')
-# from pprint import pprint
-# pprint(api.fee_schedules("sb34799"))
-# print(api.product_news("sb34799"))
-# print(api.news_item("6a8f1f7b-db97-4d8f-8b74-d54e20960183"))
-# api.close("9821eeb3-cbb5-4fc8-b5d8-9aa1b86a4abb")
+# api.autoclose_market_order("04c46d11-95db-42c7-9105-a48e82e2c19e", -0.1, 0.5)
+#api.delete_autoclose_market_order("04c46d11-95db-42c7-9105-a48e82e2c19e")
 
-# api.product_alert('sb34799', -20)
-# api.delete_product_alert('sb34799')
+#print(api.limit_order("fdb7bcbf-2c80-4c9c-a689-63c755021400"))
+#api.autoclose_limit_order("fdb7bcbf-2c80-4c9c-a689-63c755021400", -0.1, 0.5)
+#api.delete_autoclose_limit_order("fdb7bcbf-2c80-4c9c-a689-63c755021400")
